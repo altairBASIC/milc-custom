@@ -25,7 +25,7 @@ Stage0 += baseimage(image='nvcr.io/nvidia/nvhpc:20.7-devel-centos7', _as='build'
 Stage0 += shell(commands=[
     'sed -i "s|^mirrorlist=|#mirrorlist=|" /etc/yum.repos.d/CentOS-Base.repo && \
      sed -i "s|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|" /etc/yum.repos.d/CentOS-Base.repo && \
-     yum install -y make gcc gcc-c++ wget && rm -rf /var/cache/yum/*',
+     yum install -y make gcc gcc-c++ wget openssl-devel && rm -rf /var/cache/yum/*',
     'wget https://cmake.org/files/v3.18/cmake-3.18.0.tar.gz && \
      tar -zxvf cmake-3.18.0.tar.gz && \
      cd cmake-3.18.0 && \
