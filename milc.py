@@ -1,4 +1,14 @@
-# -*- coding: utf-8 -*-
+"""
+MILC 7.8.1
+
+Contents:
+  Ubuntu 16.04
+  CUDA version 11.2
+  GNU compilers (upstream)
+  OFED (upstream)
+  OpenMPI version 3.1.4
+  QUDA version 0.8.0
+"""
 # pylint: disable=invalid-name, undefined-variable, used-before-assignment
 # pylama: ignore=E0602
 
@@ -13,7 +23,9 @@ Stage0 += baseimage(image='nvcr.io/nvidia/nvhpc:20.7-devel-centos7', _as='build'
 
 # Instalacion de dependencias necesarias
 Stage0 += shell(commands=[
-    'yum install -y make gcc gcc-c++ wget && rm -rf /var/cache/yum/*',
+    'sed -i "s|^mirrorlist=|#mirrorlist=|" /etc/yum.repos.d/CentOS-Base.repo && \
+     sed -i "s|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|" /etc/yum.repos.d/CentOS-Base.repo && \
+     yum install -y make gcc gcc-c++ wget && rm -rf /var/cache/yum/*',
     'wget https://cmake.org/files/v3.18/cmake-3.18.0.tar.gz && \
      tar -zxvf cmake-3.18.0.tar.gz && \
      cd cmake-3.18.0 && \
@@ -23,20 +35,17 @@ Stage0 += shell(commands=[
      cd .. && rm -rf cmake-3.18.0 cmake-3.18.0.tar.gz'
 ])
 
-# Definición de comandos para QUDA
-quda_commands = '''
-    mkdir -p /var/tmp && cd /var/tmp && git clone --depth=1 --branch develop https://github.com/lattice/quda.git quda && cd - && 
-    cd /var/tmp/quda && 
-    mkdir -p /usr/local/quda && 
-    mkdir -p /var/tmp/quda/build && cd /var/tmp/quda/build && 
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/quda -D CMAKE_BUILD_TYPE=RELEASE -D QUDA_DIRAC_CLOVER=ON -D QUDA_DIRAC_DOMAIN_WALL=ON -D QUDA_DIRAC_STAGGERED=ON -D QUDA_DIRAC_TWISTED_CLOVER=ON -D QUDA_DIRAC_TWISTED_MASS=ON -D QUDA_DIRAC_WILSON=ON -D QUDA_FORCE_GAUGE=ON -D QUDA_FORCE_HISQ=ON -D QUDA_GPU_ARCH={} -D QUDA_INTERFACE_MILC=ON -D QUDA_INTERFACE_QDP=ON -D QUDA_LINK_HISQ=ON -D QUDA_MPI=ON /var/tmp/quda && 
-    cmake --build . --target all -- -j$(nproc) && 
-    cd /usr/local/quda && cp -a /var/tmp/quda/build/* /usr/local/quda && 
-    echo "/usr/local/quda/lib" >> /etc/ld.so.conf.d/hpccm.conf && ldconfig && rm -rf /var/tmp/quda
-'''.format(gpu_arch)
-
 # Clonacion del repositorio QUDA
-Stage0 += shell(commands=[quda_commands])
+Stage0 += shell(commands=[
+    'mkdir -p /var/tmp && cd /var/tmp && git clone --depth=1 --branch develop https://github.com/lattice/quda.git quda && cd - && \
+     cd /var/tmp/quda && \
+     mkdir -p /usr/local/quda && \
+     mkdir -p /var/tmp/quda/build && cd /var/tmp/quda/build && \
+     cmake -DCMAKE_INSTALL_PREFIX=/usr/local/quda -D CMAKE_BUILD_TYPE=RELEASE -D QUDA_DIRAC_CLOVER=ON -D QUDA_DIRAC_DOMAIN_WALL=ON -D QUDA_DIRAC_STAGGERED=ON -D QUDA_DIRAC_TWISTED_CLOVER=ON -D QUDA_DIRAC_TWISTED_MASS=ON -D QUDA_DIRAC_WILSON=ON -D QUDA_FORCE_GAUGE=ON -D QUDA_FORCE_HISQ=ON -D QUDA_GPU_ARCH={} -D QUDA_INTERFACE_MILC=ON -D QUDA_INTERFACE_QDP=ON -D QUDA_LINK_HISQ=ON -D QUDA_MPI=ON /var/tmp/quda && \
+     cmake --build . --target all -- -j$(nproc) && \
+     cd /usr/local/quda && cp -a /var/tmp/quda/build/* /usr/local/quda && \
+     echo "/usr/local/quda/lib" >> /etc/ld.so.conf.d/hpccm.conf && ldconfig && rm -rf /var/tmp/quda'.format(gpu_arch)
+])
 
 # Construccion de MILC
 Stage0 += generic_build(branch='develop',
