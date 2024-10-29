@@ -1,14 +1,3 @@
-"""
-MILC 7.8.1
-
-Contents:
-  CentOS 7
-  CUDA version 11.2
-  GNU compilers (upstream)
-  OFED (upstream)
-  OpenMPI version 3.1.4
-  QUDA version 0.8.0
-"""
 # pylint: disable=invalid-name, undefined-variable, used-before-assignment
 # pylama: ignore=E0602
 
